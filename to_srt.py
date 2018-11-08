@@ -528,6 +528,8 @@ class TT:
         def openTags(output, style_pairs):
             (before, after) = style_pairs
             for tag in sorted(after.keys()):
+                if tag == 'color':
+                    continue
                 new_value = after[tag]
                 old_value = before.get(tag, None)
                 if old_value == None and new_value:
@@ -543,6 +545,8 @@ class TT:
         def closeTags(output, style_pairs):
             (before, after) = style_pairs
             for tag in sorted(after.keys(), reverse=True):
+                if tag == 'color':
+                    continue
                 new_value = after[tag]
                 old_value = before.get(tag, None)
                 if old_value == None and new_value:
@@ -551,8 +555,12 @@ class TT:
                     if new_value:
                         output.closeTag(styleToHtml(tag, new_value)[0])
                     else:
-                        html = styleToHtml(tag, before[tag])
-                        output.openTag(html[0], html[1])
+                        if tag in before:
+                            html = styleToHtml(tag, before[tag])
+                            output.openTag(html[0], html[1])
+                        else:
+                            print('warning: tag `{}\' not found in style pairs: {}'.format(tag, str(before)))
+
 
         # Store the subs in a list
         self.subs = []
@@ -586,6 +594,7 @@ class TT:
                     parseChildTree(child.getchildren())
                     if child.tail and child.tail.strip():
                         content.write(child.tail.strip())
+
                     closeTags(content, style_stack[-2:])
                     style_stack.pop()
 
